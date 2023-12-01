@@ -8,7 +8,7 @@ To run the application -
 * To Add or Remove a resident, follow instructions in terminal
 * Press Q to exit Identify, Add, Remove screens
 * Press SPACE when in Identify or Add screen to select resident
-* Click X (top-right) to close option selection screen
+* Click X (top-right) to close main menu screen
 
 Clarifications -
 * All data is stored in data/people/people.pkl, which is generated blank if it doesn't exist already
