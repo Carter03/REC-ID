@@ -6,20 +6,33 @@ from image_tools import Process, FastProcess
 from save_person import Saver
 from camera import Camera
 from gui import UI
+from TestGUI import *
 
 class Main:
     def __init__(self, cam_coords):
         self.cam_size = cam_coords
         self.loading_screen = cv2.imread(r'../data/screenshots/loading_screen.jpg', 0)
+        self.camera = Camera(0)
 
-        if 'people.pkl' not in os.listdir(r'../data/people'):
+        if 'people.pkl' not in os.listdir(r'../data/people'): 
             categories = []
             i=1
-            while (response:=input(f'Create data category {i}:  ')) != '':
+            for _ in range(2):
+                response = input(f'Create data category {i}:  ')
+                while response == '' or len(response) > 30:
+                    response = input(f'Create valid data category {i}:  ')
                 categories.append(response)
+                print(categories)
                 i += 1
-            if 'name' not in categories:
-                categories.insert(0, 'name')
+            while response != '':
+                response = input(f'Create data category {i}:  ')
+                if len(response) > 30: continue
+                if response != '': categories.append(response)
+                i += 1
+            try: categories.remove('name')
+            except: pass
+            categories.insert(0, 'name')
+            print(categories)
             self.saver = Saver(categories)
         else:
             self.saver = Saver()
@@ -116,6 +129,36 @@ class Main:
                 break
         
         camera.kill()
+    
+    def get_boxed_frame(self):
+        frame = self.camera.get_frame()
+        if frame is None: return None
+
+        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = cv2.flip(frame, 1)
+        frame = cv2.resize(frame, self.cam_size)
+
+        drawn_frame, self.selected = FastProcess(frame).draw_faces(15, 15)
+        return cv2.cvtColor(drawn_frame, cv2.COLOR_BGR2RGB)
+    
+    def get_identity(self):
+        processed = Process(self.selected)
+        processed.load_data(self.known_encodings, self.known_names)
+        
+        if locs:=processed.get_faces():
+            name = processed.get_name(locs[0])
+            if name == 'Unlisted':
+                return None
+            identity_image = self.create_identity(self.selected, self.saver.access(name))
+            cv2.imshow('Identity', identity_image)
+            cv2.waitKey(1)
+            return identity_image
+        return None
+    
+    def add_and_update(self):
+        if self.selected is not None:
+            self.saver.add(self.selected)
+            self.known_encodings, self.known_names = Process.get_data(self.saver)
 
     def Add(self):
         camera = Camera(0)
@@ -160,8 +203,15 @@ class Main:
 
         cv2.destroyAllWindows()
 
+    def remove_and_update_info(self, remove_name):
+        self.saver.remove(remove_name)
+        self.known_encodings, self.known_names = Process.get_data(self.saver)
+
+    def get_remove_frame(self):
+        data_inclusions, database = self.saver.get_data()
+        return database, cv2.cvtColor(self.create_image(data_inclusions, database), cv2.COLOR_BGR2RGB)
+
 if __name__ == '__main__':
-    main = Main((800, 1100))
-    ui = UI(main)
-    ui.init()
-    ui.show_window()
+    main = Main((700, 1100))
+    ui = RECID(main.get_boxed_frame, main.get_remove_frame, main.remove_and_update_info, main.get_identity, main.add_and_update)
+    ui.mainloop()

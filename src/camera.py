@@ -7,8 +7,10 @@ class Camera:
         self.flip = flip
 
     def get_frame(self):
+        # print('get_frame')
         ret, frame = self.cam.read()
         if not ret: return None
+        # print('got frame')
 
         if self.rot:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)

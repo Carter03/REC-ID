@@ -37,7 +37,7 @@ class Process:
         return known_face_encodings, known_face_names
 
     def get_faces(self):
-        if not self.frame.any():
+        if self.frame is None or not self.frame.any():
             return None
         self.frame_rgb_small = cv2.resize(cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB), (0, 0), fx=0.25, fy=0.25)
         face_locations = fr.face_locations(self.frame_rgb_small)
@@ -98,7 +98,7 @@ class FastProcess:
                     if idx == closest[1]:
                         selected = image.copy()[start[1]-3*pady:end[1]+3*pady, start[0]-3*padx:end[0]+3*padx, :]
                         cv2.rectangle(image, (start[0]-padx, start[1]-pady), (end[0]+padx, end[1]+pady), (127, 255, 0), 5)
-                        cv2.putText(image, 'SELECT - SPACE', (start[0] + int(padx/2), start[1] - 15 - pady), cv2.FONT_HERSHEY_TRIPLEX, abs(end[0] - start[0]) / 300, (127, 255, 0), 2)
+                        cv2.putText(image, 'DETECTED FACE', (start[0] + int(padx/2), start[1] - 15 - pady), cv2.FONT_HERSHEY_TRIPLEX, abs(end[0] - start[0]) / 300, (127, 255, 0), 2)
                     else:
                         cv2.rectangle(image, start, end, (255, 255, 255), 3)
             
