@@ -1,0 +1,1 @@
+people folder stores people.pkl file with people data.
